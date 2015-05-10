@@ -1,7 +1,7 @@
 /*
 * Author : StrayWarrior
 * Solution to 4.1-3
-* desc describes the numbers of inverted-sequence pair.
+* 
 */
 #include <iostream>
 
@@ -48,6 +48,7 @@ SubArray find_max_cross_subarr(int * A, int lo, int mi, int hi){
         }
     }
     ret.sum = left_sum + right_sum;
+    ret.sum = (ret.sum > 0) ? ret.sum : 0;
     return ret;
 }
 
@@ -87,5 +88,6 @@ int main()
     ret = find_max_subarr(A, 0, n);
     std::cout << ret.lo << " " << ret.hi << " " << ret.sum << std::endl;
     
+    delete [] A;
     return 0;
 }
