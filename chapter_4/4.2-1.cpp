@@ -10,7 +10,9 @@
 #include <stdlib.h>
 #include "Matrix.h"
 
-Matrix::Matrix(int m, int n):m(m), n(n), ref_count(1){
+Matrix::Matrix(int m, int n):m(m), n(n){
+    ref_count = new int;
+    *ref_count = 1;
     if (m * n == 0)
         return;
     A = new int * [m];
@@ -37,6 +39,35 @@ Matrix Matrix::operator()(int ms, int me, int ns, int ne) const{
     return ret;
 }
 
+Matrix::Matrix(const Matrix & src):Matrix(0, 0){
+    *this = src;
+}
+
+Matrix & Matrix::operator=(const Matrix & src){
+    if (this != &src){
+        this->free();
+        ref_count = src.ref_count;
+        m = src.m;
+        n = src.n;
+        A = src.A;
+        ++(*ref_count);
+    }
+    return *this; 
+}
+
+Matrix::Matrix(Matrix && src):Matrix(0, 0){
+    *this = src;
+}
+
+Matrix & Matrix::operator=(Matrix && src){
+    if (this != &src){
+        this->free();
+        memcpy(this, &src, sizeof(Matrix));
+        ++(*ref_count);
+    }
+    return *this;
+}
+
 void Matrix::print() const{
     for (int i = 0; i < m; ++i){
         for (int j = 0; j < n; ++j){
@@ -46,8 +77,20 @@ void Matrix::print() const{
     }
 }
 
+void Matrix::free(){
+    --(*ref_count);
+    if (*ref_count == 0){
+        for (int i = 0; i < m; ++i){
+            delete [] A[i];
+        }
+        delete [] A;
+        delete ref_count;
+        ref_count = nullptr;
+    }
+}
+
 Matrix::~Matrix(){
-    
+    this->free();
 }
 
 Matrix operator+(const Matrix &lhs, const Matrix &rhs){
@@ -83,7 +126,6 @@ Matrix combine_four(const Matrix &ltop, const Matrix &rtop, const Matrix &lbot, 
 }
 
 Matrix square_matrix_multiply_recursive(const Matrix & lhs, const Matrix & rhs){
-    std::cout << lhs.m <<" " << lhs.n << " " << rhs.m << " " << rhs.n << std::endl;
     if (lhs.n != rhs.m)
         exit(-1);
     Matrix ret(lhs.m, rhs.n);
@@ -101,11 +143,11 @@ Matrix square_matrix_multiply_recursive(const Matrix & lhs, const Matrix & rhs){
     C1 = square_matrix_multiply_recursive(lhs(0,lm/2,0,ln/2),rhs(0,rm/2,0,rn/2)) + square_matrix_multiply_recursive(lhs(0,lm/2,ln/2,ln), rhs(rm/2, rm, 0,rn/2));
     
     C2 = square_matrix_multiply_recursive(lhs(0,lm/2,0,ln/2), rhs(0,rm/2,rn/2,rn)) + square_matrix_multiply_recursive(lhs(0,lm/2,ln/2,ln), rhs(rm/2, rm, rn/2,rn));
-    
+
     C3 = square_matrix_multiply_recursive(lhs(lm/2,lm,0,ln/2), rhs(0,rm/2,0,rn/2)) + square_matrix_multiply_recursive(lhs(lm/2,lm,ln/2,ln), rhs(rm/2, rm, 0,rn/2));
-    
+
     C4 = square_matrix_multiply_recursive(lhs(lm/2,lm,0,ln/2), rhs(0,rm/2, rn/2,rn)) + square_matrix_multiply_recursive(lhs(lm/2,lm,ln/2,ln), rhs(rm/2, rm, rn/2,rn));
-    
+
     ret = combine_four(C1, C2, C3, C4);
     return ret;
 }
