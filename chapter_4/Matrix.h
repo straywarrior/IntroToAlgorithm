@@ -12,7 +12,7 @@ public:
     int * operator[](int m) const;
     Matrix operator()(int ms, int me, int ns, int ne) const;
     
-    void print();
+    void print() const;
     
     friend Matrix operator+ (const Matrix & lhs, const Matrix & rhs);
     friend Matrix combine_four(const Matrix &ltop, const Matrix & rtop, const Matrix & lbot, const Matrix &rbot);

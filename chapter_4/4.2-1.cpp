@@ -3,7 +3,7 @@
 * Solution to 4.2-1, 4.2-2
 * A lazy version using vector
 * Note: the right edge points to the after-end of the index...
-* Now can only calculate 2^n * 2^n Matrix;
+* ToDo: Add GC and fix the memory leak
 */
 #include <iostream>
 #include <vector>
@@ -37,7 +37,7 @@ Matrix Matrix::operator()(int ms, int me, int ns, int ne) const{
     return ret;
 }
 
-void Matrix::print(){
+void Matrix::print() const{
     for (int i = 0; i < m; ++i){
         for (int j = 0; j < n; ++j){
             std::cout << A[i][j] << " ";
@@ -83,26 +83,28 @@ Matrix combine_four(const Matrix &ltop, const Matrix &rtop, const Matrix &lbot, 
 }
 
 Matrix square_matrix_multiply_recursive(const Matrix & lhs, const Matrix & rhs){
+    std::cout << lhs.m <<" " << lhs.n << " " << rhs.m << " " << rhs.n << std::endl;
     if (lhs.n != rhs.m)
         exit(-1);
     Matrix ret(lhs.m, rhs.n);
-    if (lhs.m == 0)
+    if (lhs.m * lhs.n * rhs.n == 0)
         return ret;
-    if (lhs.m == 1 || lhs.n == 1 || rhs.n == 1){
-        ret[0][0] = lhs[0][0] * rhs[0][0];
+    if (lhs.m == 1 && rhs.n ==1){
+        for (int i = 0;i < lhs.n; ++i)
+            ret[0][0] += lhs[0][i] * rhs[i][0];
         return ret;
     }
     int lm = lhs.m; int ln = lhs.n;
     int rm = rhs.m; int rn = rhs.n;
     Matrix C1(lm/2, rn/2), C2(lm/2, rn-rn/2), C3(lm-lm/2, rn/2), C4(lm-lm/2, rn-rn/2);
     
-    C1 = square_matrix_multiply_recursive(lhs(0,lm/2,0,ln/2),rhs(0,rm/2,0,rn/2)) + square_matrix_multiply_recursive(lhs(0,lm/2,ln-ln/2,ln), rhs(rm-rm/2, rm, 0,rn/2));
+    C1 = square_matrix_multiply_recursive(lhs(0,lm/2,0,ln/2),rhs(0,rm/2,0,rn/2)) + square_matrix_multiply_recursive(lhs(0,lm/2,ln/2,ln), rhs(rm/2, rm, 0,rn/2));
     
-    C2 = square_matrix_multiply_recursive(lhs(0,lm/2,0,ln/2), rhs(0,rm/2,rn-rn/2,rn)) + square_matrix_multiply_recursive(lhs(0,lm/2,ln-ln/2,ln), rhs(rm-rm/2, rm, rn-rn/2,rn));
+    C2 = square_matrix_multiply_recursive(lhs(0,lm/2,0,ln/2), rhs(0,rm/2,rn/2,rn)) + square_matrix_multiply_recursive(lhs(0,lm/2,ln/2,ln), rhs(rm/2, rm, rn/2,rn));
     
-    C3 = square_matrix_multiply_recursive(lhs(lm-lm/2,lm,0,ln/2), rhs(0,rm/2,0,rn/2)) + square_matrix_multiply_recursive(lhs(lm-lm/2,lm,ln-ln/2,ln), rhs(rm-rm/2, rm, 0,rn/2));
+    C3 = square_matrix_multiply_recursive(lhs(lm/2,lm,0,ln/2), rhs(0,rm/2,0,rn/2)) + square_matrix_multiply_recursive(lhs(lm/2,lm,ln/2,ln), rhs(rm/2, rm, 0,rn/2));
     
-    C4 = square_matrix_multiply_recursive(lhs(lm-lm/2,lm,0,ln/2), rhs(0,rm/2, rn-rn/2,rn)) + square_matrix_multiply_recursive(lhs(lm-lm/2,lm,ln-ln/2,ln), rhs(rm-rm/2, rm, rn-rn/2,rn));
+    C4 = square_matrix_multiply_recursive(lhs(lm/2,lm,0,ln/2), rhs(0,rm/2, rn/2,rn)) + square_matrix_multiply_recursive(lhs(lm/2,lm,ln/2,ln), rhs(rm/2, rm, rn/2,rn));
     
     ret = combine_four(C1, C2, C3, C4);
     return ret;
