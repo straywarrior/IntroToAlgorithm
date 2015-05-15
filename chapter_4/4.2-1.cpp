@@ -1,14 +1,15 @@
 /*
 * Author : StrayWarrior
-* Solution to 4.2-1, 4.2-2
+* Solution to 4.2-1, 4.2-3
 * A lazy version using vector
 * Note: the right edge points to the after-end of the index...
-* ToDo: Add GC and fix the memory leak
+* ToDo: Faster Copy
 */
 #include <iostream>
 #include <vector>
 #include <stdlib.h>
 #include "Matrix.h"
+#include <string.h>
 
 Matrix::Matrix(int m, int n):m(m), n(n){
     ref_count = new int;
@@ -107,20 +108,32 @@ Matrix operator+(const Matrix &lhs, const Matrix &rhs){
 Matrix combine_four(const Matrix &ltop, const Matrix &rtop, const Matrix &lbot, const Matrix &rbot){
     Matrix ret(ltop.m + lbot.m, ltop.n + rtop.n);
     for (int i = 0; i < ltop.m; i++){
+        /*
         for (int j = 0; j < ltop.n; j++)
             ret[i][j] = ltop[i][j];
+        */
+        memcpy((int *)ret.A[i], (const int *)ltop.A[i], sizeof(int) * ltop.n);
     }
     for (int i = 0; i < rtop.m; i++){
+        /*
         for (int j = 0; j < rtop.n; j++)
             ret[i][j+ltop.n] = rtop[i][j];
+        */
+        memcpy((int *)ret.A[i] + ltop.n, (const int *)rtop.A[i], sizeof(int) * rtop.n);
     }
     for (int i = 0; i < lbot.m; i++){
+        /*
         for (int j = 0; j < lbot.n; j++)
             ret[i+ltop.m][j] = lbot[i][j];
+        */
+        memcpy((int *)ret.A[i+ltop.m], (const int *)lbot.A[i], sizeof(int) * lbot.n);
     }
     for (int i = 0; i < rbot.m; i++){
+        /*
         for (int j = 0; j < rbot.n; j++)
             ret[i+ltop.m][j+ltop.n] = rbot[i][j];
+        */
+        memcpy((int *)ret.A[i+ltop.m]+ltop.n, (const int *)rbot.A[i], sizeof(int) * rbot.n);
     }
     return ret;
 }
