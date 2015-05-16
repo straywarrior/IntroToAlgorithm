@@ -56,7 +56,8 @@ Matrix & Matrix::operator=(const Matrix & src){
 }
 
 Matrix::Matrix(Matrix && src):Matrix(0, 0){
-    *this = src;
+    *this = std::move(src);
+    ++(*ref_count); //it's a hack...
 }
 
 Matrix & Matrix::operator=(Matrix && src){
@@ -126,6 +127,7 @@ Matrix combine_four(const Matrix &ltop, const Matrix &rtop, const Matrix &lbot, 
 }
 
 Matrix square_matrix_multiply_recursive(const Matrix & lhs, const Matrix & rhs){
+    lhs.print(); rhs.print();
     if (lhs.n != rhs.m)
         exit(-1);
     Matrix ret(lhs.m, rhs.n);
@@ -141,11 +143,14 @@ Matrix square_matrix_multiply_recursive(const Matrix & lhs, const Matrix & rhs){
     Matrix C1(lm/2, rn/2), C2(lm/2, rn-rn/2), C3(lm-lm/2, rn/2), C4(lm-lm/2, rn-rn/2);
     
     C1 = square_matrix_multiply_recursive(lhs(0,lm/2,0,ln/2),rhs(0,rm/2,0,rn/2)) + square_matrix_multiply_recursive(lhs(0,lm/2,ln/2,ln), rhs(rm/2, rm, 0,rn/2));
+    C1.print();
     
     C2 = square_matrix_multiply_recursive(lhs(0,lm/2,0,ln/2), rhs(0,rm/2,rn/2,rn)) + square_matrix_multiply_recursive(lhs(0,lm/2,ln/2,ln), rhs(rm/2, rm, rn/2,rn));
-
+    C2.print();
+    square_matrix_multiply_recursive(lhs(lm/2,lm,0,ln/2), rhs(0,rm/2,0,rn/2)).print();
+    std::cout << "line 150";
     C3 = square_matrix_multiply_recursive(lhs(lm/2,lm,0,ln/2), rhs(0,rm/2,0,rn/2)) + square_matrix_multiply_recursive(lhs(lm/2,lm,ln/2,ln), rhs(rm/2, rm, 0,rn/2));
-
+    C3.print();
     C4 = square_matrix_multiply_recursive(lhs(lm/2,lm,0,ln/2), rhs(0,rm/2, rn/2,rn)) + square_matrix_multiply_recursive(lhs(lm/2,lm,ln/2,ln), rhs(rm/2, rm, rn/2,rn));
 
     ret = combine_four(C1, C2, C3, C4);
