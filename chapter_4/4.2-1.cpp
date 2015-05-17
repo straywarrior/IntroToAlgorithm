@@ -20,11 +20,14 @@ Matrix::Matrix(int m, int n):m(m), n(n){
     for (int i = 0; i < m; ++i)
         A[i] = new int [n];
     //Initial it.
-    for (int i = 0; i < m; ++i){
+	//memset((int *)A[0], 0, m * n * sizeof(int));
+	
+	for (int i = 0; i < m; ++i){
         for (int j = 0; j < n; ++j){
             A[i][j] = 0;
         }
     }
+	
 }
 int * Matrix::operator[](int m) const{
         return A[m];
@@ -107,39 +110,22 @@ Matrix operator+(const Matrix &lhs, const Matrix &rhs){
 
 Matrix combine_four(const Matrix &ltop, const Matrix &rtop, const Matrix &lbot, const Matrix &rbot){
     Matrix ret(ltop.m + lbot.m, ltop.n + rtop.n);
-    for (int i = 0; i < ltop.m; i++){
-        /*
-        for (int j = 0; j < ltop.n; j++)
-            ret[i][j] = ltop[i][j];
-        */
+    for (int i = 0; i < ltop.m && ltop.m * ltop.n != 0; i++){
         memcpy((int *)ret.A[i], (const int *)ltop.A[i], sizeof(int) * ltop.n);
     }
-    for (int i = 0; i < rtop.m; i++){
-        /*
-        for (int j = 0; j < rtop.n; j++)
-            ret[i][j+ltop.n] = rtop[i][j];
-        */
+	for (int i = 0; i < rtop.m && rtop.m * rtop.n != 0; i++){
         memcpy((int *)ret.A[i] + ltop.n, (const int *)rtop.A[i], sizeof(int) * rtop.n);
     }
-    for (int i = 0; i < lbot.m; i++){
-        /*
-        for (int j = 0; j < lbot.n; j++)
-            ret[i+ltop.m][j] = lbot[i][j];
-        */
+	for (int i = 0; i < lbot.m && lbot.m * lbot.n != 0; i++){
         memcpy((int *)ret.A[i+ltop.m], (const int *)lbot.A[i], sizeof(int) * lbot.n);
     }
-    for (int i = 0; i < rbot.m; i++){
-        /*
-        for (int j = 0; j < rbot.n; j++)
-            ret[i+ltop.m][j+ltop.n] = rbot[i][j];
-        */
+	for (int i = 0; i < rbot.m && rbot.m * rbot.n != 0; i++){
         memcpy((int *)ret.A[i+ltop.m]+ltop.n, (const int *)rbot.A[i], sizeof(int) * rbot.n);
     }
     return ret;
 }
 
 Matrix square_matrix_multiply_recursive(const Matrix & lhs, const Matrix & rhs){
-    lhs.print(); rhs.print();
     if (lhs.n != rhs.m)
         exit(-1);
     Matrix ret(lhs.m, rhs.n);
@@ -155,15 +141,9 @@ Matrix square_matrix_multiply_recursive(const Matrix & lhs, const Matrix & rhs){
     Matrix C1(lm/2, rn/2), C2(lm/2, rn-rn/2), C3(lm-lm/2, rn/2), C4(lm-lm/2, rn-rn/2);
     
     C1 = square_matrix_multiply_recursive(lhs(0,lm/2,0,ln/2),rhs(0,rm/2,0,rn/2)) + square_matrix_multiply_recursive(lhs(0,lm/2,ln/2,ln), rhs(rm/2, rm, 0,rn/2));
-    C1.print();
-    
     C2 = square_matrix_multiply_recursive(lhs(0,lm/2,0,ln/2), rhs(0,rm/2,rn/2,rn)) + square_matrix_multiply_recursive(lhs(0,lm/2,ln/2,ln), rhs(rm/2, rm, rn/2,rn));
-    C2.print();
-    
     C3 = square_matrix_multiply_recursive(lhs(lm/2,lm,0,ln/2), rhs(0,rm/2,0,rn/2)) + square_matrix_multiply_recursive(lhs(lm/2,lm,ln/2,ln), rhs(rm/2, rm, 0,rn/2));
-    C3.print();
-    
-    C4 = square_matrix_multiply_recursive(lhs(lm/2,lm,0,ln/2), rhs(0,rm/2, rn/2,rn)) + square_matrix_multiply_recursive(lhs(lm/2,lm,ln/2,ln), rhs(rm/2, rm, rn/2,rn));
+	C4 = square_matrix_multiply_recursive(lhs(lm/2,lm,0,ln/2), rhs(0,rm/2, rn/2,rn)) + square_matrix_multiply_recursive(lhs(lm/2,lm,ln/2,ln), rhs(rm/2, rm, rn/2,rn));
 
     ret = combine_four(C1, C2, C3, C4);
     return ret;
