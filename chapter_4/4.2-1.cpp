@@ -11,16 +11,17 @@
 #include "Matrix.h"
 #include <string.h>
 
-Matrix::Matrix(int m, int n):m(m), n(n){
+template <typename T>
+Matrix<T>::Matrix(int m, int n) :m(m), n(n){
     ref_count = new int;
     *ref_count = 1;
     if (m * n == 0)
         return;
-    A = new int * [m];
+    A = new T * [m];
     for (int i = 0; i < m; ++i)
-        A[i] = new int [n];
+        A[i] = new T [n];
     //Initial it.
-	//memset((int *)A[0], 0, m * n * sizeof(int));
+	//memset((int *)A[0], 0, m * n * sizeof(T));
 	
 	for (int i = 0; i < m; ++i){
         for (int j = 0; j < n; ++j){
@@ -29,12 +30,15 @@ Matrix::Matrix(int m, int n):m(m), n(n){
     }
 	
 }
-int * Matrix::operator[](int m) const{
+
+template <typename T>
+T * Matrix<T>::operator[](int m) const{
         return A[m];
 }
 
-Matrix Matrix::operator()(int ms, int me, int ns, int ne) const{
-    Matrix ret(me-ms, ne-ns);
+template <typename T>
+Matrix<T> Matrix<T>::operator()(int ms, int me, int ns, int ne) const{
+	Matrix<T> ret(me - ms, ne - ns);
     for(int i = 0; i < ret.m; ++i){
         for(int j = 0; j < ret.n; ++j){
             ret[i][j] = A[ms + i][ns + j];
@@ -43,11 +47,13 @@ Matrix Matrix::operator()(int ms, int me, int ns, int ne) const{
     return ret;
 }
 
-Matrix::Matrix(const Matrix & src):Matrix(0, 0){
+template <typename T>
+Matrix<T>::Matrix(const Matrix & src) :Matrix(0, 0){
     *this = src;
 }
 
-Matrix & Matrix::operator=(const Matrix & src){
+template <typename T>
+Matrix<T> & Matrix<T>::operator=(const Matrix & src){
     if (this != &src){
         this->free();
         ref_count = src.ref_count;
@@ -59,11 +65,13 @@ Matrix & Matrix::operator=(const Matrix & src){
     return *this; 
 }
 
-Matrix::Matrix(Matrix && src):Matrix(0, 0){
+template <typename T>
+Matrix<T>::Matrix(Matrix<T> && src) : Matrix(0, 0){
     *this = std::move(src);
 }
 
-Matrix & Matrix::operator=(Matrix && src){
+template <typename T>
+Matrix<T> & Matrix<T>::operator=(Matrix && src){
     if (this != &src){
         this->free();
         memcpy(this, &src, sizeof(Matrix));
@@ -72,7 +80,8 @@ Matrix & Matrix::operator=(Matrix && src){
     return *this;
 }
 
-void Matrix::print() const{
+template <typename T>
+void Matrix<T>::print() const{
     for (int i = 0; i < m; ++i){
         for (int j = 0; j < n; ++j){
             std::cout << A[i][j] << " ";
@@ -81,7 +90,8 @@ void Matrix::print() const{
     }
 }
 
-void Matrix::free(){
+template <typename T>
+void Matrix<T>::free(){
     --(*ref_count);
     if (*ref_count == 0 && m*n > 0){
         for (int i = 0; i < m; ++i){
@@ -93,14 +103,16 @@ void Matrix::free(){
     }
 }
 
-Matrix::~Matrix(){
+template <typename T>
+Matrix<T>::~Matrix(){
     this->free();
 }
 
-Matrix operator+(const Matrix &lhs, const Matrix &rhs){
+template <typename T>
+Matrix<T> operator+(const Matrix<T> &lhs, const Matrix<T> &rhs){
     if (lhs.m != rhs.m || lhs.n != rhs.n)
         exit(-1);
-    Matrix sum(lhs.m, lhs.n);
+	Matrix<T> sum(lhs.m, lhs.n);
     for (int i = 0; i < lhs.m; ++i){
         for (int j = 0; j < lhs.n; ++j)
             sum[i][j] = lhs[i][j] + rhs[i][j];
@@ -108,8 +120,9 @@ Matrix operator+(const Matrix &lhs, const Matrix &rhs){
     return sum;
 }
 
-Matrix combine_four(const Matrix &ltop, const Matrix &rtop, const Matrix &lbot, const Matrix &rbot){
-    Matrix ret(ltop.m + lbot.m, ltop.n + rtop.n);
+template <typename T>
+Matrix<T> combine_four(const Matrix<T> &ltop, const Matrix<T> &rtop, const Matrix<T> &lbot, const Matrix<T> &rbot){
+	Matrix<T> ret(ltop.m + lbot.m, ltop.n + rtop.n);
     for (int i = 0; i < ltop.m && ltop.m * ltop.n != 0; i++){
         memcpy((int *)ret.A[i], (const int *)ltop.A[i], sizeof(int) * ltop.n);
     }
@@ -125,10 +138,11 @@ Matrix combine_four(const Matrix &ltop, const Matrix &rtop, const Matrix &lbot, 
     return ret;
 }
 
-Matrix square_matrix_multiply_recursive(const Matrix & lhs, const Matrix & rhs){
+template <typename T>
+Matrix<T> square_matrix_multiply_recursive(const Matrix<T> & lhs, const Matrix<T> & rhs){
     if (lhs.n != rhs.m)
         exit(-1);
-    Matrix ret(lhs.m, rhs.n);
+	Matrix<T> ret(lhs.m, rhs.n);
     if (lhs.m * lhs.n * rhs.n == 0)
         return ret;
     if (lhs.m == 1 && rhs.n ==1){
@@ -138,7 +152,7 @@ Matrix square_matrix_multiply_recursive(const Matrix & lhs, const Matrix & rhs){
     }
     int lm = lhs.m; int ln = lhs.n;
     int rm = rhs.m; int rn = rhs.n;
-    Matrix C1(lm/2, rn/2), C2(lm/2, rn-rn/2), C3(lm-lm/2, rn/2), C4(lm-lm/2, rn-rn/2);
+	Matrix<T> C1(lm / 2, rn / 2), C2(lm / 2, rn - rn / 2), C3(lm - lm / 2, rn / 2), C4(lm - lm / 2, rn - rn / 2);
     
     C1 = square_matrix_multiply_recursive(lhs(0,lm/2,0,ln/2),rhs(0,rm/2,0,rn/2)) + square_matrix_multiply_recursive(lhs(0,lm/2,ln/2,ln), rhs(rm/2, rm, 0,rn/2));
     C2 = square_matrix_multiply_recursive(lhs(0,lm/2,0,ln/2), rhs(0,rm/2,rn/2,rn)) + square_matrix_multiply_recursive(lhs(0,lm/2,ln/2,ln), rhs(rm/2, rm, rn/2,rn));
@@ -162,8 +176,8 @@ int main(){
         std::cout << "Error in the scale of matrix" << std::endl;
         return -1;
     }
-    Matrix A(Am, An);
-    Matrix B(Bm, Bn);
+    Matrix<int> A(Am, An);
+    Matrix<int> B(Bm, Bn);
     for (int i = 0; i < Am; ++i){
         for (int j = 0; j < An; ++j)
             std::cin >> A[i][j];
@@ -172,7 +186,7 @@ int main(){
         for (int j = 0; j < Bn; ++j)
             std::cin >> B[i][j];
     }
-    Matrix C = square_matrix_multiply_recursive(A, B);
+    Matrix<int> C = square_matrix_multiply_recursive(A, B);
     C.print();
     
     return 0;

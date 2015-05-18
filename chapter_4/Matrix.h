@@ -1,7 +1,17 @@
+template <typename T>
+class Matrix;
 
+template <typename T>
+Matrix<T> operator+ (const Matrix<T> &lhs, const Matrix<T> & rhs);
+
+template <typename T>
+Matrix<T> combine_four(const Matrix<T> &ltop, const Matrix<T> & rtop, const Matrix<T> & lbot, const Matrix<T> &rbot);
+
+
+template <typename T>
 class Matrix{
 private:
-    int ** A = nullptr;
+    T ** A = nullptr;
 public:
     int * ref_count;
     
@@ -9,18 +19,18 @@ public:
     
     Matrix(int m, int n);
     
-    int * operator[](int m) const;
-    Matrix operator()(int ms, int me, int ns, int ne) const;
+    T * operator[](int m) const;
+	Matrix<T> operator()(int ms, int me, int ns, int ne) const;
     
     Matrix(const Matrix & src);
-    Matrix & operator=(const Matrix & src);
+	Matrix<T> & operator=(const Matrix & src);
     Matrix(Matrix && src);
-    Matrix & operator=(Matrix && src);
+	Matrix<T> & operator=(Matrix && src);
     
     void print() const;
     
-    friend Matrix operator+ (const Matrix & lhs, const Matrix & rhs);
-    friend Matrix combine_four(const Matrix &ltop, const Matrix & rtop, const Matrix & lbot, const Matrix &rbot);
+	friend Matrix<T> operator+<T> (const Matrix<T> & lhs, const Matrix<T> & rhs);
+	friend Matrix<T> combine_four<T>(const Matrix<T> &ltop, const Matrix<T> & rtop, const Matrix<T> & lbot, const Matrix<T> &rbot);
     
     void free();
     ~Matrix();
