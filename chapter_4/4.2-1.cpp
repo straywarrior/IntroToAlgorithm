@@ -21,12 +21,15 @@ Matrix<T>::Matrix(int m, int n) :m(m), n(n){
     for (int i = 0; i < m; ++i)
         A[i] = new T [n];
     //Initial it.
-	//memset((int *)A[0], 0, m * n * sizeof(T));
+	//memset((T *)A[0], 0, m * n * sizeof(T));
 	
 	for (int i = 0; i < m; ++i){
+		memset((T *)A[i], 0, n * sizeof(T));
+		/*
         for (int j = 0; j < n; ++j){
             A[i][j] = 0;
         }
+		*/
     }
 	
 }
