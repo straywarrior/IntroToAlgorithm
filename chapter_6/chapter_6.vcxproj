@@ -57,6 +57,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ShowProgress>LinkVerbose</ShowProgress>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -81,10 +82,7 @@
     <ClInclude Include="Heap.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="6.1.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Heap.cpp" />
+    <ClCompile Include="6-2.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

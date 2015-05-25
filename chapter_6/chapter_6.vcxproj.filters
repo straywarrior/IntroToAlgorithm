@@ -20,12 +20,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="6.1.cpp">
-      <Filter>源文件</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Heap.cpp">
+    <ClCompile Include="6-2.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
