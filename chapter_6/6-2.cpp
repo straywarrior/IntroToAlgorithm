@@ -22,8 +22,13 @@ int main()
 	MinHeap<int> heap_min(A, n);
 	heap_max.buildHeap();
 	heap_min.buildHeap();
+	std::cout << heap_max.pop() << std::endl;
+
 	heap_max.print();
-	heap_min.printf();
+	heapSort(A, n);
+	for (int i = 0; i < n; ++i)
+		std::cout << A[i] << " ";
+	std::cout<<std::endl;
 	
 	return 0;
 }

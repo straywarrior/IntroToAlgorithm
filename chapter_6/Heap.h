@@ -4,15 +4,18 @@
 */
 
 #ifndef _HEAP_H_
-#define _HEAP_H_
+#define _HEAP_H_ value
 #include <string.h>
 #include <iostream>
 #include <math.h>
+
+//#define _HEAP_HEAPIFY_RECUR_
 
 class HeapOutOfBoundException : public std::exception{};
 
 template <typename T>
 class BaseHeap{
+	template <typename T> friend void heapSort(T* src, int size);
 protected:
 	T * A;
 	int capacity;
@@ -26,14 +29,29 @@ public:
 		memcpy((T *)A + 1, src, size * sizeof(T));
 	}
 
-	virtual int push(T val) = 0;
-	virtual T pop() = 0;
+	T top(){
+		if (size)
+			return A[1];
+		else
+			throw HeapOutOfBoundException();
+	}
+	T pop(){
+		if (size){
+			T ret = A[1];
+			A[1] = A[size];
+			size -= 1;
+			return ret;
+		}
+		else
+			throw HeapOutOfBoundException();
+	}
 	virtual void heapify(int i) = 0;
 
 	void buildHeap(){
 		for (int i = (size >> 1); i > 0; --i)
 			heapify(i);
 	}
+
 	void print(){
 		for (int i = 1; i <= size; i++)
 			std::cout << A[i] << " ";
@@ -56,6 +74,9 @@ public:
 	inline int right(int i){
 		return (i << 1) + 1;
 	}
+	~BaseHeap(){
+		delete[] A;
+	}
 };
 
 
@@ -64,8 +85,6 @@ class MaxHeap : public BaseHeap<T>{
 public:
 	MaxHeap(int _Capacity) :BaseHeap(_Capacity){}
 	MaxHeap(T * src, int size) :BaseHeap(src, size){}
-	int push(T val) override;
-	T pop() override;
 	virtual void heapify(int i) override;
 };
 
@@ -74,30 +93,8 @@ class MinHeap : public BaseHeap<T>{
 public:
 	MinHeap(int _Capacity) :BaseHeap(_Capacity){}
 	MinHeap(T * src, int size) :BaseHeap(src, size){}
-	int push(T val) override;
-	T pop() override;
 	virtual void heapify(int i) override;
 };
-
-
-template <typename T>
-int MaxHeap<T>::push(T val){
-	return 0;
-}
-
-template <typename T>
-T MaxHeap<T>::pop(){
-	return A[1];
-}
-
-template <typename T>
-int MinHeap<T>::push(T val){
-	return 0;
-}
-template <typename T>
-T MinHeap<T>::pop(){
-	return A[1];
-}
 
 
 /*
@@ -213,7 +210,18 @@ void MinHeap<T>::heapify(int i)
 
 #endif
 
-
+/* Algorithm related to Heap */
+template <typename T>
+void heapSort(T* src, int size){
+	MaxHeap<T> tmpHeap(src, size);
+	tmpHeap.buildHeap();
+	for (int i = tmpHeap.size; i > 1; i--){
+		std::swap(tmpHeap.A[1], tmpHeap.A[i]);
+		tmpHeap.size -= 1;
+		tmpHeap.heapify(1);
+	}
+	memcpy((T*)src, (const T*)tmpHeap.A + 1, size*sizeof(T));
+}
 
 
 
