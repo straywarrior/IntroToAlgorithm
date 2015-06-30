@@ -1,5 +1,7 @@
 /*
-* The first index of element will be 1
+* Author : StrayWarrior
+* Solution to 6.2-1, 6.2-2, 6.2-3, 6.5-3
+* Note: The first index of elements in Heap-in array will be 1
 *
 */
 
@@ -14,10 +16,29 @@
 class HeapOutOfBoundException : public std::exception{};
 
 template <typename T>
+class DummyKey{
+public:
+	T& operator()(const T & elem){
+		return (T&)elem;
+	}
+};
+
+template <typename T, typename Key = DummyKey<T>>
+class LessCompareKey{
+public:
+	Key getKey;
+	bool operator()(const T& lhs, const T& rhs){
+		return (getKey(lhs) < getKey(rhs));
+	}
+};
+
+template <typename T, typename Key = DummyKey<T>, typename CmpKey = LessCompareKey<T, Key>>
 class BaseHeap{
 	template <typename T> friend void heapSort(T* src, int size);
 protected:
 	T * A;
+	Key getKey;
+	CmpKey cmpKey;
 	int capacity;
 	int size;
 public:
@@ -40,6 +61,7 @@ public:
 			T ret = A[1];
 			A[1] = A[size];
 			size -= 1;
+			heapify(1);
 			return ret;
 		}
 		else
@@ -80,16 +102,16 @@ public:
 };
 
 
-template <typename T>
-class MaxHeap : public BaseHeap<T>{
+template <typename T, typename Key = DummyKey<T>>
+class MaxHeap : public BaseHeap<T, Key>{
 public:
 	MaxHeap(int _Capacity) :BaseHeap(_Capacity){}
 	MaxHeap(T * src, int size) :BaseHeap(src, size){}
 	virtual void heapify(int i) override;
 };
 
-template <typename T>
-class MinHeap : public BaseHeap<T>{
+template <typename T, typename Key = DummyKey<T>>
+class MinHeap : public BaseHeap<T, Key>{
 public:
 	MinHeap(int _Capacity) :BaseHeap(_Capacity){}
 	MinHeap(T * src, int size) :BaseHeap(src, size){}
@@ -150,8 +172,8 @@ void MinHeap<T>::heapify(int i)
 * Iterative Edition of Heapify-function
 */
 
-template <typename T>
-void MaxHeap<T>::heapify(int i)
+template <typename T, typename Key>
+void MaxHeap<T, Key>::heapify(int i)
 {
 	int i_cur = i;
 	int l, r, max;
@@ -161,11 +183,11 @@ void MaxHeap<T>::heapify(int i)
 		r = right(i_cur);
 		if (l > size && r > size)
 			return;
-		if (A[l] > A[i_cur])
+		if (cmpKey(A[i_cur], A[l]))
 			max = l;
 		else
 			max = i_cur;
-		if (r <= size && A[r] > A[max])
+		if (r <= size && cmpKey(A[max], A[r]))
 			max = r;
 		if (max != i_cur){
 			T tmp = A[i_cur];
@@ -179,8 +201,8 @@ void MaxHeap<T>::heapify(int i)
 	}
 }
 
-template <typename T>
-void MinHeap<T>::heapify(int i)
+template <typename T, typename Key>
+void MinHeap<T, Key>::heapify(int i)
 {
 	int i_cur = i;
 	int l, r, min;
@@ -190,11 +212,11 @@ void MinHeap<T>::heapify(int i)
 		r = right(i_cur);
 		if (l > size && r > size)
 			return;
-		if (A[l] < A[i_cur])
+		if (cmpKey(A[l], A[i_cur]))
 			min = l;
 		else
 			min = i_cur;
-		if (r <= size && A[r] < A[min])
+		if (r <= size && cmpKey(A[r], A[min]))
 			min = r;
 		if (min != i_cur){
 			T tmp = A[i_cur];

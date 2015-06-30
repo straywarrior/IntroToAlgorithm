@@ -80,6 +80,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Heap.h" />
+    <ClInclude Include="Task.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="6-2.cpp" />
