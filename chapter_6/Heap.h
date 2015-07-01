@@ -15,15 +15,15 @@
 
 class HeapOutOfBoundException : public std::exception{};
 
-template <typename T>
+template <typename T, typename KeyType = T>
 class DummyKey{
 public:
-	T& operator()(const T & elem){
-		return (T&)elem;
+	KeyType& operator()(const T & elem){
+		return (KeyType&)elem;
 	}
 };
 
-template <typename T, typename Key = DummyKey<T>>
+template <typename T, typename KeyType = T, typename Key = DummyKey<T, KeyType>>
 class LessCompareKey{
 public:
 	Key getKey;
@@ -32,34 +32,43 @@ public:
 	}
 };
 
-template <typename T, typename Key = DummyKey<T>, typename CmpKey = LessCompareKey<T, Key>>
+template <typename T, typename KeyType = T, typename Key = DummyKey<T, KeyType>, typename CmpKey = LessCompareKey<T, KeyType, Key>>
 class BaseHeap{
 	template <typename T> friend void heapSort(T* src, int size);
 protected:
-	T * A;
+	T * elems;
 	Key getKey;
 	CmpKey cmpKey;
 	int capacity;
 	int size;
 public:
 	BaseHeap(int _Capacity) :capacity(_Capacity), size(0){
-		A = new T[capacity + 1];
+		elems = new T[capacity + 1];
 	}
-	BaseHeap(T * src, int size) : capacity(size), size(size){
-		A = new T[capacity + 1];
-		memcpy((T *)A + 1, src, size * sizeof(T));
+	BaseHeap(T * src, int size) : capacity(size << 1), size(size){
+		elems = new T[capacity + 1];
+		memcpy((T *)elems + 1, src, size * sizeof(T));
+	}
+
+	int expand(){
+		capacity = capacity << 1;
+		T* newbuf = new T[capacity];
+		memcpy((T*)newbuf, (const T*)elems, (size + 1)*sizeof(T));
+		delete[] elems;
+		elems = newbuf;
+		return capacity;
 	}
 
 	T top(){
 		if (size)
-			return A[1];
+			return elems[1];
 		else
 			throw HeapOutOfBoundException();
 	}
 	T pop(){
 		if (size){
-			T ret = A[1];
-			A[1] = A[size];
+			T ret = elems[1];
+			elems[1] = elems[size];
 			size -= 1;
 			heapify(1);
 			return ret;
@@ -68,25 +77,38 @@ public:
 			throw HeapOutOfBoundException();
 	}
 	virtual void heapify(int i) = 0;
+	virtual void changeKey(int i, const KeyType& newKey) = 0;
+	void insertElem(const T& elem){
+		if (size + 1 > capacity)
+			expand();
+		size += 1;
+		//it's a hack;
+		elems[size] = elem;
+		if (size == 1) return;
+		getKey(elems[size]) = getKey(elems[parent(size)]);
+		changeKey(size, getKey(elem));
+	}
 
 	void buildHeap(){
 		for (int i = (size >> 1); i > 0; --i)
 			heapify(i);
 	}
 
+
 	void print(){
 		for (int i = 1; i <= size; i++)
-			std::cout << A[i] << " ";
+			std::cout << elems[i] << " ";
 		std::cout << std::endl;
 	}
 	void printf(){
 		for (int i = 1; i <= exp2(round(log2(size))); i = i << 1){
 			for (int j = i; j < (i << 1) && j <= size; j++)
-				std::cout << A[j] << " ";
+				std::cout << elems[j] << " ";
 			std::cout << std::endl;
 		}
 	}
 
+protected:
 	inline int parent(int i){
 		return (i >> 1);
 	}
@@ -96,26 +118,66 @@ public:
 	inline int right(int i){
 		return (i << 1) + 1;
 	}
+
+public:
 	~BaseHeap(){
-		delete[] A;
+		delete[] elems;
 	}
 };
 
 
-template <typename T, typename Key = DummyKey<T>>
-class MaxHeap : public BaseHeap<T, Key>{
+template <typename T, typename KeyType = T, typename Key = DummyKey<T, KeyType>>
+class MaxHeap : public BaseHeap<T, KeyType, Key>{
 public:
 	MaxHeap(int _Capacity) :BaseHeap(_Capacity){}
 	MaxHeap(T * src, int size) :BaseHeap(src, size){}
 	virtual void heapify(int i) override;
+	virtual void changeKey(int i, const KeyType& newKey) override{
+		if (i > size)
+			throw HeapOutOfBoundException();
+		KeyType & key = getKey(elems[i]);
+		if (newKey < key){
+			key = newKey;
+			heapify(i);
+		}
+		else{
+			key = newKey;
+			while (i > 1 && cmpKey(elems[parent(i)], elems[i])){
+				T tmp = elems[i];
+				elems[i] = elems[parent(i)];
+				elems[parent(i)] = tmp;
+				i = parent(i);
+			}
+		}
+
+	}
 };
 
-template <typename T, typename Key = DummyKey<T>>
-class MinHeap : public BaseHeap<T, Key>{
+template <typename T, typename KeyType = T, typename Key = DummyKey<T, KeyType>>
+class MinHeap : public BaseHeap<T, KeyType, Key>{
 public:
 	MinHeap(int _Capacity) :BaseHeap(_Capacity){}
 	MinHeap(T * src, int size) :BaseHeap(src, size){}
 	virtual void heapify(int i) override;
+	virtual void changeKey(int i, const KeyType& newKey){
+		if (i > size)
+			throw HeapOutOfBoundException();
+		KeyType & key = getKey(elems[i]);
+		if (key < newKey){
+			key = newKey;
+			heapify(i);
+		}
+		else{
+			key = newKey;
+			while (i > 1 && cmpKey(elems[i], elems[parent(i)])){
+				T tmp = elems[i];
+				elems[i] = elems[parent(i)];
+				elems[parent(i)] = tmp;
+				i = parent(i);
+			}
+		}
+		
+	}
 };
 
 
@@ -131,16 +193,16 @@ void MaxHeap<T>::heapify(int i)
 	int max;
 	if (l > size && r > size)
 		return;
-	if ((l <= size) && (A[l] > A[i])) //l is sure not greater than size..but isn't r
+	if ((l <= size) && (elems[l] > elems[i])) //l is sure not greater than size..but isn't r
 		max = l;
 	else
 		max = i;
-	if ((r <= size) && (A[r] > A[max]))
+	if ((r <= size) && (elems[r] > elems[max]))
 		max = r;
 	if (max != i){
-		T temp = A[i];
-		A[i] = A[max];
-		A[max] = temp;
+		T temp = elems[i];
+		elems[i] = elems[max];
+		elems[max] = temp;
 		heapify(max);
 	}
 }
@@ -153,16 +215,16 @@ void MinHeap<T>::heapify(int i)
 	int min;
 	if (l > size && r > size)
 		return;
-	if ((l <= size) && (A[l] < A[i]))
+	if ((l <= size) && (elems[l] < elems[i]))
 		min = l;
 	else
 		min = i;
-	if ((r <= size) && (A[r] < A[min]))
+	if ((r <= size) && (elems[r] < elems[min]))
 		min = r;
 	if (min != i){
-		T temp = A[i];
-		A[i] = A[min];
-		A[min] = temp;
+		T temp = elems[i];
+		elems[i] = elems[min];
+		elems[min] = temp;
 		heapify(min);
 	}
 }
@@ -172,8 +234,8 @@ void MinHeap<T>::heapify(int i)
 * Iterative Edition of Heapify-function
 */
 
-template <typename T, typename Key>
-void MaxHeap<T, Key>::heapify(int i)
+template <typename T, typename KeyType, typename Key>
+void MaxHeap<T, KeyType, Key>::heapify(int i)
 {
 	int i_cur = i;
 	int l, r, max;
@@ -183,16 +245,16 @@ void MaxHeap<T, Key>::heapify(int i)
 		r = right(i_cur);
 		if (l > size && r > size)
 			return;
-		if (cmpKey(A[i_cur], A[l]))
+		if (cmpKey(elems[i_cur], elems[l]))
 			max = l;
 		else
 			max = i_cur;
-		if (r <= size && cmpKey(A[max], A[r]))
+		if (r <= size && cmpKey(elems[max], elems[r]))
 			max = r;
 		if (max != i_cur){
-			T tmp = A[i_cur];
-			A[i_cur] = A[max];
-			A[max] = tmp;
+			T tmp = elems[i_cur];
+			elems[i_cur] = elems[max];
+			elems[max] = tmp;
 			i_cur = max;
 		}
 		else{
@@ -201,8 +263,8 @@ void MaxHeap<T, Key>::heapify(int i)
 	}
 }
 
-template <typename T, typename Key>
-void MinHeap<T, Key>::heapify(int i)
+template <typename T, typename KeyType, typename Key>
+void MinHeap<T, KeyType, Key>::heapify(int i)
 {
 	int i_cur = i;
 	int l, r, min;
@@ -212,16 +274,16 @@ void MinHeap<T, Key>::heapify(int i)
 		r = right(i_cur);
 		if (l > size && r > size)
 			return;
-		if (cmpKey(A[l], A[i_cur]))
+		if (cmpKey(elems[l], elems[i_cur]))
 			min = l;
 		else
 			min = i_cur;
-		if (r <= size && cmpKey(A[r], A[min]))
+		if (r <= size && cmpKey(elems[r], elems[min]))
 			min = r;
 		if (min != i_cur){
-			T tmp = A[i_cur];
-			A[i_cur] = A[min];
-			A[min] = tmp;
+			T tmp = elems[i_cur];
+			elems[i_cur] = elems[min];
+			elems[min] = tmp;
 			i_cur = min;
 		}
 		else{
@@ -238,11 +300,11 @@ void heapSort(T* src, int size){
 	MaxHeap<T> tmpHeap(src, size);
 	tmpHeap.buildHeap();
 	for (int i = tmpHeap.size; i > 1; i--){
-		std::swap(tmpHeap.A[1], tmpHeap.A[i]);
+		std::swap(tmpHeap.elems[1], tmpHeap.elems[i]);
 		tmpHeap.size -= 1;
 		tmpHeap.heapify(1);
 	}
-	memcpy((T*)src, (const T*)tmpHeap.A + 1, size*sizeof(T));
+	memcpy((T*)src, (const T*)tmpHeap.elems + 1, size*sizeof(T));
 }
 
 
