@@ -39,8 +39,10 @@ protected:
 	T * elems;
 	Key getKey;
 	CmpKey cmpKey;
+public:
 	int capacity;
 	int size;
+
 public:
 	BaseHeap(int _Capacity) :capacity(_Capacity), size(0){
 		elems = new T[capacity + 1];
@@ -49,15 +51,7 @@ public:
 		elems = new T[capacity + 1];
 		memcpy((T *)elems + 1, src, size * sizeof(T));
 	}
-
-	int expand(){
-		capacity = capacity << 1;
-		T* newbuf = new T[capacity];
-		memcpy((T*)newbuf, (const T*)elems, (size + 1)*sizeof(T));
-		delete[] elems;
-		elems = newbuf;
-		return capacity;
-	}
+	BaseHeap() :BaseHeap(20){}
 
 	T top(){
 		if (size)
@@ -75,6 +69,9 @@ public:
 		}
 		else
 			throw HeapOutOfBoundException();
+	}
+	bool empty(){
+		return (!(size > 0));
 	}
 	virtual void heapify(int i) = 0;
 	virtual void changeKey(int i, const KeyType& newKey) = 0;
@@ -94,7 +91,6 @@ public:
 			heapify(i);
 	}
 
-
 	void print(){
 		for (int i = 1; i <= size; i++)
 			std::cout << elems[i] << " ";
@@ -109,6 +105,17 @@ public:
 	}
 
 protected:
+	int expand(){
+		capacity = capacity << 1;
+		T* oldbuf = elems;
+		elems = new T[capacity];
+#if 1
+		memcpy((T*)elems, (const T*)oldbuf, (size + 1)*sizeof(T));
+		delete[] oldbuf;
+#endif
+		return capacity;
+	}
+
 	inline int parent(int i){
 		return (i >> 1);
 	}
@@ -130,6 +137,7 @@ template <typename T, typename KeyType = T, typename Key = DummyKey<T, KeyType>>
 class MaxHeap : public BaseHeap<T, KeyType, Key>{
 public:
 	MaxHeap(int _Capacity) :BaseHeap(_Capacity){}
+	MaxHeap() : BaseHeap(){}
 	MaxHeap(T * src, int size) :BaseHeap(src, size){}
 	virtual void heapify(int i) override;
 	virtual void changeKey(int i, const KeyType& newKey) override{
@@ -157,6 +165,7 @@ template <typename T, typename KeyType = T, typename Key = DummyKey<T, KeyType>>
 class MinHeap : public BaseHeap<T, KeyType, Key>{
 public:
 	MinHeap(int _Capacity) :BaseHeap(_Capacity){}
+	MinHeap() :BaseHeap(){}
 	MinHeap(T * src, int size) :BaseHeap(src, size){}
 	virtual void heapify(int i) override;
 	virtual void changeKey(int i, const KeyType& newKey){
@@ -182,7 +191,7 @@ public:
 
 
 /*
-* Recursive Edition of Heapify-function
+* Old and Recursive Edition of Heapify-function(Temporarily not available in this version)
 */
 #ifdef _HEAP_HEAPIFY_RECUR_
 template <typename T>

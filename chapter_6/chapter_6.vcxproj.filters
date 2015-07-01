@@ -21,9 +21,24 @@
     <ClInclude Include="Task.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="PriorityQueue.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Chapter6.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="6-2.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="6-5.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="chapter6test.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Task.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -9,7 +9,7 @@
 #include "Task.h"
 
 
-int main()
+int ch6sec2()
 {
 	int n;
 	std::cout << "Input the length of test case: " << std::endl;
@@ -21,6 +21,8 @@ int main()
 	}
 	MaxHeap<int, int, DummyKey<int, int>> heap_max(A, n);
 	MinHeap<int> heap_min(A, n);
+	for (int i = 0; i < n + 1; i++)
+		heap_max.insertElem(rand());
 	heap_max.buildHeap();
 	heap_min.buildHeap();
 	heap_max.printf();
