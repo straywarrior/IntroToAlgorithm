@@ -1,6 +1,6 @@
 /*
 * Author : StrayWarrior
-* Solution to 6.2-1, 6.2-2, 6.2-3, 6.5-3
+* Solution to 6.2-1, 6.2-2, 6.2-3, 6.5-3, 6.5-8
 * Note: The first index of elements in Heap-in array will be 1
 *
 */
@@ -84,6 +84,15 @@ public:
 		if (size == 1) return;
 		getKey(elems[size]) = getKey(elems[parent(size)]);
 		changeKey(size, getKey(elem));
+	}
+
+	void deleteElem(int i){
+		if (i > size)
+			throw HeapOutOfBoundException();
+		//is it safe to use std::swap?
+		std::swap(elems[i], elems[size]);
+		size -= 1;
+		heapify(i);
 	}
 
 	void buildHeap(){

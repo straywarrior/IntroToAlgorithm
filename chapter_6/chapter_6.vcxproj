@@ -81,12 +81,15 @@
   <ItemGroup>
     <ClInclude Include="Chapter6.h" />
     <ClInclude Include="Heap.h" />
+    <ClInclude Include="List.h" />
+    <ClInclude Include="Pair.h" />
     <ClInclude Include="PriorityQueue.h" />
     <ClInclude Include="Task.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="6-2.cpp" />
     <ClCompile Include="6-5.cpp" />
+    <ClCompile Include="6-9.cpp" />
     <ClCompile Include="chapter6test.cpp" />
     <ClCompile Include="Task.cpp" />
   </ItemGroup>

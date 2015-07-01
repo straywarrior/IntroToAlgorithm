@@ -27,6 +27,12 @@
     <ClInclude Include="Chapter6.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="List.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Pair.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="6-2.cpp">
@@ -39,6 +45,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Task.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="6-9.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
